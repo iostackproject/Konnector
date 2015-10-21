@@ -246,7 +246,7 @@ def node_wrapper(targetname=None, hostname=None, operation="",
             cmd.append("--login")
         if login_out == "logout":
             cmd.append("--logout")
-    error_code, output_success, output_failure = utils.invoke(cmd, False)
+    error_code, output_success, output_failure = invoke(cmd, False)
     if error_code != 0:
         error_string = output_failure.splitlines()[0].split(" ", 1)[-1].strip()
         # error_string extracts the text after "iscsiadm: " of the
@@ -264,7 +264,7 @@ def session_wrapper(session_id=None):
     cmd = [ISCSIADM_BINARY, "-m", "session", "-P", "1"]
     if session_id:
         cmd.extend(["-r", session_id])
-    error_code, output_success, output_failure = utils.invoke(cmd, False)
+    error_code, output_success, output_failure = invoke(cmd, False)
     if error_code != 0:
         error_string = output_failure.splitlines()[0].split(" ", 1)[-1].strip()
         # error_string extracts the text after "iscsiadm: " of the
