@@ -163,7 +163,7 @@ class TestLoginTarget:
         def test_no_records_found(self):
             with pytest.raises(TargetdError) as td:
                 login_target(None, "iqn")
-            assert str(td.value) == ('No records found')
+            assert 'no records found' in str(td.value).lower()
 
         def test_auth_method_error(self):
             with pytest.raises(TargetdError) as td:
@@ -215,7 +215,7 @@ class TestDeleteNode:
         def test_no_records_found(self):
             with pytest.raises(TargetdError) as td:
                 delete_node(None, "iqn")
-            assert str(td.value) == ('No records found')
+            assert 'no records found' in str(td.value).lower()
 
     def test_validate_string_one(self):
         with pytest.raises(TargetdError) as td:
