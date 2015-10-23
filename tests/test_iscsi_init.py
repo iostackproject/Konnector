@@ -17,6 +17,7 @@ from test_iscsi_init_attributes import NODE_SUMMARY_PARSED
 from test_iscsi_init_attributes import SESSION_OUTPUT
 from test_iscsi_init_attributes import SESSION_PARSED
 # to run tests : sudo py.test -q test_discovery_iscsi_init.py
+sam_tst_host = "192.168.200.82"
 
 return_code, output_success, output_fail = invoke(["which", "iscsiadm"], False)
 
@@ -72,7 +73,7 @@ class TestDeleteDiscovery:
 
         def test_discovery_method_error(self):
             with pytest.raises(TargetdError) as td:
-                delete_discovery(None, "192.168.122.237", "test")
+                delete_discovery(None,sam_tst_host, "test")
             assert str(td.value) == ('Invalid value. Possible values'
                                      ' are : sendtargets, isns')
 
@@ -101,7 +102,7 @@ class TestDisplayDiscovery:
 
         def test_discovery_method_error(self):
             with pytest.raises(TargetdError) as td:
-                display_discovery(None, "192.168.122.237", "test")
+                display_discovery(None, sam_tst_host, "test")
             assert str(td.value) == ('Invalid value. Possible values'
                                      ' are : sendtargets, isns')
 
@@ -125,20 +126,20 @@ class TestDiscoverPortal:
     if output_success:
         def test_no_connection(self):
             with pytest.raises(TargetdError) as td:
-                discover_portal(None, "192.168.122.237")
-            delete_discovery(None, "192.168.122.237")
+                discover_portal(None, sam_tst_host)
+            delete_discovery(None, sam_tst_host)
             assert str(td.value) == ('cannot make connection to '
-                                     '192.168.122.237: No route to host')
+                                     '%s: No route to host', sam_tst_host)
 
         def test_discovery_method_error(self):
             with pytest.raises(TargetdError) as td:
-                discover_portal(None, "192.168.122.237", "test")
+                discover_portal(None, sam_tst_host, "test")
             assert str(td.value) == ('Invalid value. Possible values'
                                      ' are : sendtargets, isns')
 
         def test_auth_method_error(self):
             with pytest.raises(TargetdError) as td:
-                discover_portal(None, "192.168.122.237", "sendtargets", "test")
+                discover_portal(None, sam_tst_host, "sendtargets", "test")
             assert str(td.value) == ('Invalid value. Possible values are'
                                      ' : chap, mutual_chap')
 
