@@ -2,12 +2,18 @@ import subprocess
 import StringIO
 import json
 import logging as log
+import os
 from collections import defaultdict
 from utils import TargetdError, invoke
 
 DISCOVERY_METHODS = ["sendtargets", "isns"]
 AUTH_METHODS = ["chap", "mutual_chap"]
-ISCSIADM_BINARY = "/usr/bin/iscsiadm"
+
+def _checkfile(path):
+    return os.path.isfile(path) and path
+
+ISCSIADM_BINARY = (_checkfile("/usr/bin/iscsiadm")
+        or _checkfile("/sbin/iscsiadm") or "iscsiadm")
 
 ISCSI_ERR_LOGIN_AUTH_FAILED = 24
 ISCSI_ERR_TRANS = 4
