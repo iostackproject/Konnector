@@ -1,9 +1,11 @@
 import subprocess
 import StringIO
+import glob
 import json
 import logging as log
 import os
 from collections import defaultdict
+import time
 from utils import TargetdError, invoke
 
 DISCOVERY_METHODS = ["sendtargets", "isns"]
@@ -394,7 +396,13 @@ def login_target(req, targetname, hostname=None, auth_method=None,
         raise TargetdError(INVALID_VALUE_AUTH, "Invalid value."
                            " Possible values are : %s" %
                            ", ".join(AUTH_METHODS))
-    output = node_wrapper(targetname, hostname, login_out="login")
+    node_wrapper(targetname, hostname, login_out="login")
+    for delay in range(4):
+        time.sleep(delay)
+        devices = glob.glob("/dev/disk/by-path/*%s:*%s-lun-*" %
+                (hostname, targetname))
+        if len(devices) == 1:
+            return os.path.realpath(devices[0])
 
 
 def logout_target(req, targetname, hostname=None):
