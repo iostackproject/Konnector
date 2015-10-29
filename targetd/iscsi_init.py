@@ -42,6 +42,7 @@ QUERY_FAILURE = -32
 
 def initialize(config_dict):
     return dict(
+        get_initiator_name=get_initiator_name,
         delete_discovery=delete_discovery,
         display_discovery=display_discovery,
         display_discovery_summary=display_discovery_summary,
@@ -369,6 +370,13 @@ def delete_all_discoveries():
     for t in d:
         delete_discovery(None, t, d[t][-1])
 
+
+def get_initiator_name(req):
+    """Return the iSCSI initiator IQN of this node."""
+    with open("/etc/iscsi/initiatorname.iscsi") as iqnfile:
+        for line in iqnfile:
+            if line.startswith("InitiatorName="):
+                return line.strip().split("=", 1)[1]
 
 def login_target(req, targetname, hostname=None, auth_method=None,
                  username=None, password=None, username_in=None,
