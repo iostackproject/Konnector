@@ -27,24 +27,6 @@ Conventions
 error object with a negative error code. Non-negative error codes
 (including 0) are not defined.
 
-Filtered Volume Operations
---------------------------
-
-### create_filtered_volume(name, device, serial, filters, handler)
-Create a new volume by adding a stack of block storage filters to an
-existing volume.
-'name' is the name of the underlying target that will be created;
-this is automatically exported to a local block device (e.g.,
-/dev/sde) which is returned.
-Either an existing local 'device' (e.g. '/dev/sdb') or its 'serial'
-number should be passed in.
-'filters' is an array of filter identifiers corresponding to filters
-provided by 'handler'.
-'handler' need not be specified - it defaults to 'mp_filter_stack'.
-
-### delete_filtered_volume(name)
-Delete a volume created using create_filtered_volume().
-'name' is whatever identifier was chosen for the filtered volume.
 
 Pool operations
 ---------------

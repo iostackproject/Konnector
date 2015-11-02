@@ -1,0 +1,279 @@
+= Konnector API
+Copyright 2015, MPSTOR Ltd. - info@mpstor.com
+Version 0.1
+:toc:
+:toc-placement: auto
+
+== General
+
+This document describes only the Konnector extensions to the targetd
+API. The functions below are accessed in the same way as described in
+the targetd API document, i.e., using JSON RPC on TCP port 18700. For
+example, using curl, a "create_filtered_volume" command could be
+executed like this:
+
+------------------------------------------------------------------
+IP=192.168.2.61  # or wherever the Konnector service is running
+curl --user admin:password -X POST http://$IP:18700/targetrpc" \
+-d'{"jsonrpc":"2.0", "id":0, "method":"create_filtered_volume",
+"params":{"name":"fvol1", "device":"/dev/sde","filters":["xor"]}}'
+------------------------------------------------------------------
+
+Since only the "method" and "params" field are significant, the
+descriptions of the methods which follow include only the parameters of
+the method, i.e., the possible contents of the "params" field.
+
+Similarly, the sample responses show only the "result" portion of the
+JSON object returned.
+
+== iSCSI initiator commands
+
+=== get_initiator_name
+
+Get the iSCSI initiator IQN of the Konnector node.
+
+No parameters.
+
+Example response:
+
+----------------------------------------
+"iqn.1994-05.com.redhat:b0d684d83bb4"
+----------------------------------------
+
+=== discover_portal
+
+Discover all targets for a given iSCSI discovery portal.
+
+[cols="<,<",options="header",]
+|============================================================
+|parameter |description
+|hostname |the iSCSI target node hostname or IP
+|discovery_method |"sendtargets" (default) or "isns"
+|auth_method |null (default), "chap" or "mutual_chap"
+|username |used only with auth_method "chap" or "mutual_chap"
+|password |used only with auth_method "chap" or "mutual_chap"
+|username_in |used only with auth_method "mutual_chap"
+|password_in |used only with auth_method "mutual_chap"
+|============================================================
+
+Example response:
+
+----------------------------------------
+{
+    "iqn.2004-04.com.mpstor:mb-vol-1": {
+        "192.168.2.162": {
+            "interface": "default",
+            "portal": [
+                "192.168.2.162",
+                3260,
+                1
+            ]
+        }
+    },
+    "iqn.2004-04.com.mpstor:mb-vol-2": {
+        "192.168.2.162": {
+            "interface": "default",
+            "portal": [
+                "192.168.2.162",
+                3260,
+                1
+            ]
+        }
+    }
+}
+----------------------------------------
+
+=== display_discovery
+
+Display all data for a given discovery record.
+
+[cols="<,<",options="header",]
+|===================================================
+|parameter |description
+|hostname |the iSCSI target node hostname or IP
+|discovery_method |"sendtargets" (default) or "isns"
+|===================================================
+
+Example response:
+
+-----------------------------------------------
+{
+    "sendtargets": {
+        "address": "192.168.122.239",
+        "auth": {
+            "authmethod": "None",
+            "password": "",
+            "password_in": "",
+            "username": "",
+            "username_in": ""
+        },
+        "discoveryd_poll_inval": "30",
+        "iscsi": {
+            "MaxRecvDataSegmentLength": "32768"
+        },
+        "port": "3260",
+        "reopen_max": "5",
+        "timeo": {
+            "active_timeout": "30",
+            "auth_timeout": "45"
+        },
+        "use_discoveryd": "No"
+    },
+    "startup": "manual",
+    "type": "sendtargets"
+}
+-----------------------------------------------
+
+=== display_discovery_summary
+
+No parameters.
+
+Example response:
+
+----------------------
+{
+    "192.168.2.162": [
+        3260,
+        "sendtargets"
+    ]
+}
+----------------------
+
+=== delete_discovery
+
+Delete discovery of targets at a given IP address.
+
+[cols="<,<",options="header",]
+|===================================================
+|parameter |description
+|hostname |the iSCSI target node hostname or IP
+|discovery_method |"sendtargets" (default) or "isns"
+|===================================================
+
+=== login_target
+
+Login to a given target.
+
+[cols="<,<",options="header",]
+|================================================================
+|parameter |description
+|targetname |target name, e.g., "iqn.2004-04.com.mpstor:mb-vol-2"
+|hostname |e.g., "192.168.2.162"
+|auth_method |null (default), "chap" or "mutual_chap"
+|username |used only with auth_method "chap" or "mutual_chap"
+|password |used only with auth_method "chap" or "mutual_chap"
+|username_in |used only with auth_method "mutual_chap"
+|password_in |used only with auth_method "mutual_chap"
+|================================================================
+
+Example response:
+
+----------
+"/dev/sdb"
+----------
+
+[[logout_target]]
+logout_target
+^^^^^^^^^^^^^
+
+Logout for a given target.
+
+[cols="<,<",options="header",]
+|================================================================
+|parameter |description
+|targetname |target name, e.g., "iqn.2004-04.com.mpstor:mb-vol-2"
+|hostname |e.g., "192.168.2.162"
+|================================================================
+
+=== logout_all_targets
+
+Logout for all targets.
+
+No parameters.
+
+[[display_node]]
+display_node
+^^^^^^^^^^^^
+
+Display all data for a given node record.
+
+[cols="<,<",options="header",]
+|================================================================
+|parameter |description
+|targetname |target name, e.g., "iqn.2004-04.com.mpstor:mb-vol-2"
+|hostname |e.g., "192.168.2.162"
+|================================================================
+
+=== display_node_summary
+
+Display data for all node records.
+
+No parameters.
+
+=== delete_node
+
+Delete a given node record.
+
+[cols="<,<",options="header",]
+|================================================================
+|parameter |description
+|targetname |target name, e.g., "iqn.2004-04.com.mpstor:mb-vol-2"
+|hostname |e.g., "192.168.2.162"
+|================================================================
+
+=== delete_all_nodes
+
+Delete all node records.
+
+No parameters.
+
+=== display_session
+
+Display all data for a given session.
+
+targetname | null (default) to display all sessions hostname | null
+(default) to display all sessions
+
+=== purge
+
+Delete all records.
+
+No parameters.
+
+== Filtered volume commands
+
+=== create_filtered_volume
+
+Create a new volume by adding a stack of block storage filters to an
+existing block device. The filtered device is returned.
+
+[cols="<,<",options="header",]
+|=======================================================================
+|parameter |description
+|name |a unique name to assign to the underlying target created
+
+|device |the device to which to add the filters e.g., "/dev/sda";
+default null
+
+|serial |alternative identification of device, e.g., "0xfed70573ae21"
+
+|filters |a list of filters, e.g., ["xor"]; default null
+
+|handler |need not be specified - default "mp_filter_stack"
+|=======================================================================
+
+Example response:
+
+----------
+"/dev/sdb"
+----------
+
+=== delete_filtered_volume
+
+Delete a volume created using create_filtered_volume().
+
+[cols="<,<",options="header",]
+|========================================================
+|parameter |description
+|name |the unique name assigned in create_filtered_volume
+|========================================================
