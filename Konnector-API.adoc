@@ -2,7 +2,8 @@
 Copyright 2015, MPSTOR Ltd. - info@mpstor.com
 Version 0.1
 :toc:
-:toc-placement: auto
+:toc-placement!:
+toc::[]
 
 == General
 
