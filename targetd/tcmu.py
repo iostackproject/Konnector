@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2015 MPSTOR Ltd. mpstor.com
 from collections import defaultdict
+import dbus
 import logging as log
 import os
 import rtslib_fb as rtslib
@@ -17,11 +18,15 @@ def initialize(config_dict):
             delete_filtered_volume=delete_filtered_volume,
             )
 
-def _check_configfs(func):
-    """Ensure configfs filesystem is mounted, save altered config."""
+def _check_setup(func):
+    """Ensure configfs filesystem is mounted, save altered config.
+    Also ensure the TCMU service is running.
+    """
     def checker(*args, **kwargs):
         subprocess.check_output('mount|grep -q configfs || '
                 'mount -t configfs configfs /sys/kernel/config', shell=True)
+        dbus.SystemBus().get_object('org.kernel.TCMUService1',
+                '/org/kernel/TCMUService1')
         try:
             return func(*args, **kwargs)
         finally:
@@ -31,7 +36,7 @@ def _check_configfs(func):
                 log.exception("error saving config")
     return checker
 
-@_check_configfs
+@_check_setup
 def create_filtered_volume(req, handler=None, name=None, filters=None, device=None, serial=None):
     filters = filters or []
     handler = handler or "mp_filter_stack"
@@ -67,7 +72,7 @@ def create_filtered_volume(req, handler=None, name=None, filters=None, device=No
             log.debug("Target %s is at %s" % (target.wwn, dev))
             return dev
 
-@_check_configfs
+@_check_setup
 def delete_filtered_volume(req, name=None):
     if not name:
         raise TargetdError(GENERAL_TARGETD_ERROR, "No name specified.")
