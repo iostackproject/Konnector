@@ -9,6 +9,7 @@ password:
 
 # defaults below; uncomment and edit
 #block_pools: [vg-targetd] # just 1 by default, but can be more
+block_pools: []
 #fs_pools: []
 #user: admin
 #target_name: iqn.2003-01.org.example.mach1:1234

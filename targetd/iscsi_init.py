@@ -1,13 +1,21 @@
 import subprocess
 import StringIO
+import glob
 import json
 import logging as log
+import os
 from collections import defaultdict
+import time
 from utils import TargetdError, invoke
 
 DISCOVERY_METHODS = ["sendtargets", "isns"]
 AUTH_METHODS = ["chap", "mutual_chap"]
-ISCSIADM_BINARY = "/usr/bin/iscsiadm"
+
+def _checkfile(path):
+    return os.path.isfile(path) and path
+
+ISCSIADM_BINARY = (_checkfile("/usr/bin/iscsiadm")
+        or _checkfile("/sbin/iscsiadm") or "iscsiadm")
 
 ISCSI_ERR_LOGIN_AUTH_FAILED = 24
 ISCSI_ERR_TRANS = 4
@@ -34,6 +42,7 @@ QUERY_FAILURE = -32
 
 def initialize(config_dict):
     return dict(
+        get_initiator_name=get_initiator_name,
         delete_discovery=delete_discovery,
         display_discovery=display_discovery,
         display_discovery_summary=display_discovery_summary,
@@ -246,7 +255,7 @@ def node_wrapper(targetname=None, hostname=None, operation="",
             cmd.append("--login")
         if login_out == "logout":
             cmd.append("--logout")
-    error_code, output_success, output_failure = utils.invoke(cmd, False)
+    error_code, output_success, output_failure = invoke(cmd, False)
     if error_code != 0:
         error_string = output_failure.splitlines()[0].split(" ", 1)[-1].strip()
         # error_string extracts the text after "iscsiadm: " of the
@@ -264,7 +273,7 @@ def session_wrapper(session_id=None):
     cmd = [ISCSIADM_BINARY, "-m", "session", "-P", "1"]
     if session_id:
         cmd.extend(["-r", session_id])
-    error_code, output_success, output_failure = utils.invoke(cmd, False)
+    error_code, output_success, output_failure = invoke(cmd, False)
     if error_code != 0:
         error_string = output_failure.splitlines()[0].split(" ", 1)[-1].strip()
         # error_string extracts the text after "iscsiadm: " of the
@@ -362,6 +371,13 @@ def delete_all_discoveries():
         delete_discovery(None, t, d[t][-1])
 
 
+def get_initiator_name(req):
+    """Return the iSCSI initiator IQN of this node."""
+    with open("/etc/iscsi/initiatorname.iscsi") as iqnfile:
+        for line in iqnfile:
+            if line.startswith("InitiatorName="):
+                return line.strip().split("=", 1)[1]
+
 def login_target(req, targetname, hostname=None, auth_method=None,
                  username=None, password=None, username_in=None,
                  password_in=None):
@@ -388,7 +404,13 @@ def login_target(req, targetname, hostname=None, auth_method=None,
         raise TargetdError(INVALID_VALUE_AUTH, "Invalid value."
                            " Possible values are : %s" %
                            ", ".join(AUTH_METHODS))
-    output = node_wrapper(targetname, hostname, login_out="login")
+    node_wrapper(targetname, hostname, login_out="login")
+    for delay in range(4):
+        time.sleep(delay)
+        devices = glob.glob("/dev/disk/by-path/*%s:*%s-lun-*" %
+                (hostname, targetname))
+        if len(devices) == 1:
+            return os.path.realpath(devices[0])
 
 
 def logout_target(req, targetname, hostname=None):

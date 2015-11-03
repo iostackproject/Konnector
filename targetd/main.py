@@ -194,6 +194,7 @@ def update_mapping():
     import block
     import fs
     import iscsi_init
+    import tcmu
 
     try:
         mapping.update(block.initialize(config))
@@ -211,6 +212,12 @@ def update_mapping():
         mapping.update(iscsi_init.initialize(config))
     except Exception as e:
         log.error("Error initializing iscsi_init module: %s" % e)
+        raise
+
+    try:
+        mapping.update(tcmu.initialize(config))
+    except Exception as e:
+        log.error("Error initializing tcmu module: %s" % e)
         raise
 
     # one method requires output from both modules
