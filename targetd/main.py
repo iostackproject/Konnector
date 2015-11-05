@@ -191,16 +191,15 @@ def load_config(config_path):
 
 def update_mapping():
     # wait until now so submodules can import 'main' safely
-    import block
     import fs
     import iscsi_init
-    import tcmu
+    import quiesce
 
     try:
+        import block
         mapping.update(block.initialize(config))
     except Exception as e:
         log.error("Error initializing block module: %s" % e)
-        raise
 
     try:
         mapping.update(fs.initialize(config))
@@ -215,9 +214,15 @@ def update_mapping():
         raise
 
     try:
+        import tcmu
         mapping.update(tcmu.initialize(config))
     except Exception as e:
         log.error("Error initializing tcmu module: %s" % e)
+
+    try:
+        mapping.update(quiesce.initialize(config))
+    except Exception as e:
+        log.error("Error initializing quiesce module: %s" % e)
         raise
 
     # one method requires output from both modules
