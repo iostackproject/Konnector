@@ -378,15 +378,19 @@ def get_initiator_name(req):
             if line.startswith("InitiatorName="):
                 return line.strip().split("=", 1)[1]
 
-def login_target(req, targetname, hostname=None, auth_method=None,
+def login_target(req, targetname, hostname, auth_method=None,
                  username=None, password=None, username_in=None,
                  password_in=None):
     """
     Login to a given target using specified informations
     """
     validate_string(targetname)
-    if hostname:
-        validate_string(hostname)
+    validate_string(hostname)
+    # allow for the possibility that we're already logged in
+    devices = glob.glob("/dev/disk/by-path/*%s:*%s-lun-*" %
+            (hostname, targetname))
+    if len(devices) == 1:
+        return os.path.realpath(devices[0])
     if auth_method in AUTH_METHODS:
         validate_string(username)
         validate_string(password)
