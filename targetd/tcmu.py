@@ -23,8 +23,9 @@ def _check_setup(func):
     Also ensure the TCMU service is running.
     """
     def checker(*args, **kwargs):
-        subprocess.check_output('mount|grep -q configfs || '
-                'mount -t configfs configfs /sys/kernel/config', shell=True)
+        # This seems not to work on Ubuntu, so commented out.
+        #subprocess.check_output('mount|grep -q configfs || '
+        #        'mount -t configfs configfs /sys/kernel/config', shell=True)
         dbus.SystemBus().get_object('org.kernel.TCMUService1',
                 '/org/kernel/TCMUService1')
         try:
